@@ -1,0 +1,38 @@
+import math
+
+test_data = open('test_tweet', 'r')
+c_data = open('c_word_freq', 'r')
+
+textProb = 0
+cTotWords = 0
+probC = .38
+
+for tline in test_data: #for every line of tweet
+	w=tline.split() #split on whitespace
+	for i in range(0, len(w)):
+		word = w[i]	
+		prob = 0
+		for cline in c_data:
+			lineParts = cline.split()
+			print lineParts[0]
+			print lineParts[1]
+			cTotWords +=int(lineParts[0])
+
+		
+		for cline in c_data:
+			parts = cline.split()
+			
+			if parts[1] == word:
+				#match
+				prob = parts[0]
+				prob = prob/cTotWords
+				break #break
+		if prob == 0:
+			#assign a small probability
+			prob = 0.001
+		
+		#from here, we have a probability of the word in the dialect
+		textProb += math.log(prob,10) 
+#then at the end, we add in log(P(class))
+textProb += math.log(probC, 10)
+print textProb
