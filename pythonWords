@@ -1,38 +1,116 @@
 import math
+import re
+files = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14']
 
-test_data = open('test_tweet', 'r')
+#open word freq files for dialects
 c_data = open('c_word_freq', 'r')
+m_data = open('m_word_freq', 'r')
+u_data = open('u_word_freq', 'r')
 
-textProb = 0
+#initialize word counts to 0
 cTotWords = 0
-probC = .38
+mTotWords = 0
+uTotWords = 0
 
-for tline in test_data: #for every line of tweet
-	w=tline.split() #split on whitespace
-	for i in range(0, len(w)):
-		word = w[i]	
-		prob = 0
-		for cline in c_data:
-			lineParts = cline.split()
-			print lineParts[0]
-			print lineParts[1]
-			cTotWords +=int(lineParts[0])
+#get wordcount by adding-up freq column
+for cline in c_data:
+	lineParts = cline.split()
+	cTotWords += int(lineParts[0])
+for mline in m_data:
+	lineParts = mline.split()
+	mTotWords += int(lineParts[0])
+for uline in u_data:
+	lineParts = uline.split()
+	uTotWords += int(lineParts[0])
 
+#loop through test files
+for t in range(0, 14):
+	#open the next tweet
+	test_tweet = 'xx' + files[t]
+	test_data = open(test_tweet, 'r')#open the test data file
+
+
+	textProbC = 0 
+	textProbM = 0
+	textProbU = 0
+	
+	
+	probC = .38 #calculated by hand - 19/50 training tweets are from C
+	probM = 0.14 #7/50 tweets from M
+	probU = 0.48 #24/50 tweets from U
+
+	
+
+	#go through each line of tweets file
+	for tline in test_data: #for every line of tweet
+		w=re.sub("[,.!]", " ", tline) #replace punctuation with space
+		w=w.split() #split on whitespace
+		for i in range(0, len(w)):
+			word = w[i]	#get a new word
+			#initialize probability for new word to 0	
+			p_wordC = 0 
+			p_wordM = 0
+			p_wordU = 0
+
+
+			#check curr word in tweet against every line of c_data
 		
-		for cline in c_data:
-			parts = cline.split()
+			for cline in c_data:
+				ctext = re.sub("[.,!]", " ", cline)
+				parts = ctext.split() #splitspace, into columns
 			
-			if parts[1] == word:
-				#match
-				prob = parts[0]
-				prob = prob/cTotWords
-				break #break
-		if prob == 0:
-			#assign a small probability
-			prob = 0.001
+				if parts[1] == word:
+					#match
+					p_wordC = parts[0]/cTotWords
+					break #break out and move on
+			#after the c data has been checked, see if not found:
+			if p_wordC == 0:#if p hasn't been assigned yet
+				#assign a small probability
+				p_wordC = 0.001
 		
-		#from here, we have a probability of the word in the dialect
-		textProb += math.log(prob,10) 
-#then at the end, we add in log(P(class))
-textProb += math.log(probC, 10)
-print textProb
+			#from here, we have a p of the word in the dialect
+			#add log base 2 to the running total
+			textProbC += math.log(p_wordC,2)
+			
+
+			#repeat for M:
+			
+			for mline in m_data:
+				mtext = re.sub("[,.!]", " ", m_line)
+				partsM = mtext.split()
+				if partsM[1] == word:
+					#match
+					p_wordM = partsM[0]/mTotWords
+					break
+			if p_wordM == 0:
+				p_wordM = 0.001
+			textProbM += math.log(p_wordM, 2)
+
+			#repeat for U
+			
+			for uline in u_data:
+				utext = re.sub("[,.!]", " ", u_line)
+				partsU = utext.split()
+				if partsU[1] == word:
+					#match
+					p_wordU = partsU[0]/uTotWords
+					break
+			if p_wordU == 0:
+				p_wordU = 0.001
+			textProbU += math.log(p_wordU,2)
+
+ 
+	#then at the end, we add in log(P(class))
+	textProbC += math.log(probC, 2)
+	textProbM += math.log(probM, 2)
+	textProbU += math.log(probU, 2)
+	
+	list = [textProbC, textProbM, textProbU]
+	if max(list) == list[0]:
+		print 'C'
+	if max(list) == list[1]:
+		print 'M'
+	if max(list) == list[2]:
+		print 'U'
+
+	print list
