@@ -11,23 +11,32 @@ u_data = open('u_word_freq', 'r')
 cTotWords = 0
 mTotWords = 0
 uTotWords = 0
+vocabC = 0
+vocabM = 0
+vocabU = 0
 
 #get wordcount by adding-up freq column
 for cline in c_data:
 	lineParts = cline.split()
 	cTotWords += int(lineParts[0])
+	vocabC +=1
 #	print cTotWords
 for mline in m_data:
 	lineParts = mline.split()
 	mTotWords += int(lineParts[0])
+	vocabM +=1
 #	print mTotWords
 for uline in u_data:
 	lineParts = uline.split()
 	uTotWords += int(lineParts[0])
+	vocabU +=1
+alpha = 1
+
+
 #	print uTotWords
 #loop through test files
 for t in range(0,15): #which xx[] files to read
-	#print ['Iteration', t]
+	print ['Iteration', t]
 	
 	#open the next tweet
 	test_tweet = 'xx' + files[t]
@@ -67,12 +76,13 @@ for t in range(0,15): #which xx[] files to read
 				mtext = re.sub("[.,!]", " ", line)
 				parts = mtext.split()
 				if parts[1] == word:
-					p_wordM = float(parts[0])/mTotWords
+					p_wordM = float(parts[0]+alpha)/(mTotWords +(alpha* vocabM))
 					switch = 0
 				if switch == 0:
 					break
 			if switch == 1:
-				p_wordM = 0.001
+				p_wordM = float(alpha)/(mTotWords + (alpha*vocabM))
+			
 			textProbM += math.log(p_wordM, 2)
 			
 
@@ -84,14 +94,14 @@ for t in range(0,15): #which xx[] files to read
 				ctext = re.sub("[.,!]", " ", line)
 				parts = ctext.split() #splitspace, into columns
 				if parts[1] == word:
-					p_wordC = float(parts[0])/cTotWords
+					p_wordC = (float(parts[0])+alpha)/(cTotWords+(alpha * vocabC))
 					switch = 0
 				if switch == 0:
 					break #break out and move on
 			#after the c data has been checked, see if not found:
 			if switch == 1: #if p hasn't been assigned yet
 			#assign a small probability
-				p_wordC = 0.001
+				p_wordC = float(alpha)/(cTotWords + (alpha *vocabC))
 				#print 'word not found:'
 				#print word
 			textProbC += math.log(p_wordC, 2)
@@ -115,13 +125,13 @@ for t in range(0,15): #which xx[] files to read
 					#print uTotWords
 					
 				#	print ['FOUND u  word', partsU[1]]
-					p_wordU = float(partsU[0])/uTotWords
+					p_wordU = (float(partsU[0])+alpha)/(uTotWords + (alpha*vocabU))
 	#				print p_wordU
 	#				
 				if switch ==0:
 					break
 			if switch == 1:
-				p_wordU = 0.001
+				p_wordU =float(alpha)/(uTotWords + (alpha * vocabU))
 			textProbU += math.log(p_wordU, 2)
 			#	print ['assigning 0.001', word]
 			#print ['p_wordU',  p_wordU]
